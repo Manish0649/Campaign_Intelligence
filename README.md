@@ -208,5 +208,3 @@ Set `PROPOSAL_USER_EMAIL` and `PROPOSAL_USER_PASSWORD` in your local `.env` to c
 
 ### Health and tests
 The Health Check page reports API, database, LangGraph, Laya, MCP SDK, Gemini configuration and Zilliz connectivity. A `SYS-ADMIN` can run the pytest suite from the page and see passed, failed, error and skipped counts. Pytest runs only when requested.
-#   C a m p a i g n _ I n t e l l i g e n c e  
- 
