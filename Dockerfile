@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 COPY backend/ /app/backend/
 COPY knowledge_base/ /app/knowledge_base/
-COPY data/forecast/ /app/data/forecast/
+
 
 EXPOSE 8000
 
