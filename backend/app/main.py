@@ -9,6 +9,7 @@ from backend.app.db.migrations import run_compatibility_migrations
 from backend.app.api.routes import health, forecasts, feasibility, proposals, decision, auth, knowledge_base
 from backend.app.security.auth import validate_security_settings
 from backend.app.security.sanitizer import sanitize_log_message
+from backend.app.data_bootstrap import download_m5_dataset
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("campaign_intelligence")
@@ -47,17 +48,34 @@ app.include_router(decision.router)
 app.include_router(auth.router)
 app.include_router(knowledge_base.router)
 
+
 @app.on_event("startup")
 def on_startup():
     logger.info(f"Starting {settings.app_name} in [{settings.environment}] mode.")
+
     validate_security_settings()
+
+    # Download required forecasting dataset
+    try:
+        download_m5_dataset()
+        logger.info("M5 forecasting dataset is ready.")
+    except Exception:
+        logger.exception("M5 forecasting dataset initialization failed.")
+        raise
+
     try:
         # Create database tables if not existing
         Base.metadata.create_all(bind=engine)
         run_compatibility_migrations(engine)
-        logger.info("Database schemas initialized and additive compatibility migrations applied.")
+        logger.info(
+            "Database schemas initialized and additive compatibility migrations applied."
+        )
     except Exception as e:
-        logger.warning("Database schema initialization failed: %s", sanitize_log_message(str(e)))
+        logger.warning(
+            "Database schema initialization failed: %s",
+            sanitize_log_message(str(e))
+        )
+
 
 if __name__ == "__main__":
     import uvicorn

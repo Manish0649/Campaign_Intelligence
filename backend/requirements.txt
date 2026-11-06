@@ -22,3 +22,5 @@ pytest-cov>=5.0,<7.0
 ruff>=0.6,<1.0
 # Model Context Protocol server
 fastmcp>=2.0,<3.0
+
+gdown>=5.2,<6
