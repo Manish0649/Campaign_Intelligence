@@ -273,7 +273,7 @@ with st.sidebar:
 token = st.session_state.jwt
 
 if page == "🩺 Health Check":
-    health.show_health(token, st.session_state.get("role"))
+    health.show_health(token)
 
 elif page == "📈 Forecasts":
     forecasts.show_forecasts(token)
