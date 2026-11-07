@@ -10,8 +10,9 @@ from backend.app.api.schemas.campaign import CampaignBudgetStatus, CampaignRespo
 from backend.app.db.repositories.campaign_repo import CampaignRepository
 from backend.app.db.repositories.inventory_repo import InventoryRepository
 from backend.app.db.repositories.forecast_repo import (
-    FORECAST_MODEL, ForecastDataError, ForecastNotFoundError, ForecastRepository
+    FORECAST_MODEL, ForecastDataError, ForecastNotFoundError
 )
+from backend.app.api.routes.forecasts import forecast_repo
 from backend.app.domain.feasibility import evaluate_campaign_feasibility
 from backend.app.domain.budget import calculate_campaign_cost, validate_campaign_budget
 
@@ -70,7 +71,7 @@ def check_campaign_feasibility(
     """
     camp_repo = CampaignRepository(db)
     inv_repo = InventoryRepository(db)
-    fc_repo = ForecastRepository()
+    fc_repo = forecast_repo
 
     # 1. Campaign must be registered.
     camp_data = camp_repo.get_campaign(request.campaign_id)
@@ -179,7 +180,7 @@ def get_campaign_budget_status(
     Retrieve campaign budget allocation, projected cost, and remaining ceiling.
     """
     camp_repo = CampaignRepository(db)
-    fc_repo = ForecastRepository()
+    fc_repo = forecast_repo
 
     camp_data = camp_repo.get_campaign(campaign_id)
     if not camp_data:

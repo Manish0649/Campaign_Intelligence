@@ -70,6 +70,17 @@ def on_startup():
         logger.info(
             "Database schemas initialized and additive compatibility migrations applied."
         )
+        # Prepare forecasting outputs and campaign candidates once per process start.
+        try:
+            from backend.app.services.campaign_preparation_service import refresh_prepared_candidates
+            prepared = refresh_prepared_candidates()
+            logger.info(
+                "Decision candidates prepared at startup: %s ready, %s skipped.",
+                prepared.get("total_candidates", 0),
+                len(prepared.get("skipped", [])),
+            )
+        except Exception:
+            logger.exception("Startup campaign candidate preparation failed.")
     except Exception as e:
         logger.warning(
             "Database schema initialization failed: %s",

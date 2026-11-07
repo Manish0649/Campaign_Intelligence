@@ -8,6 +8,9 @@ from backend.app.decision.models import (
 from backend.app.decision.laya_adapter import LayaAdapter
 from backend.app.agents.graph import orchestrate_campaign_planning
 from backend.app.security.auth import get_current_user
+from backend.app.services.campaign_preparation_service import (
+    get_prepared_candidates, refresh_prepared_candidates,
+)
 
 router = APIRouter(prefix="/decision", tags=["Decision Layer (Day 5)"], dependencies=[Depends(get_current_user)])
 
@@ -15,6 +18,26 @@ class OrchestratedProposalRequest(BaseModel):
     campaign_ids: Optional[List[str]] = Field(default=None, description="Subset of candidate campaigns (or None for top catalogue candidates)")
     decision_framework: Literal["laya"] = Field(default="laya", description="Laya decision framework")
     assumed_uplift_pct: float = Field(default=0.20, ge=0.0, le=2.0)
+
+
+
+@router.get("/candidates")
+def read_prepared_candidates():
+    """Return the most recently prepared campaign candidates."""
+    return get_prepared_candidates()
+
+
+@router.post("/candidates/refresh")
+def rebuild_prepared_candidates():
+    """Manually rebuild cached candidates from current campaigns and forecasts."""
+    try:
+        return refresh_prepared_candidates()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Campaign candidates could not be prepared. Check backend logs.",
+        ) from exc
+
 
 @router.post("/rank", response_model=DecisionOutput)
 def rank_campaign_candidates(input_data: DecisionInput):

@@ -36,20 +36,42 @@ def show_feasibility(token: str):
         st.caption("Evaluates budget, inventory, supplier readiness, and forecast for a campaign.")
         campaign_id_f = st.text_input("Campaign ID", key="feas_cid")
         product_ids_f = st.text_input("Product IDs (comma‑separated)", value="p1,p2", key="feas_pids")
-        # Use the same explicit date initialization as the Forecast page.
-        # Separate columns keep both calendar controls easy to access.
-        default_start_date = date.today() + timedelta(days=1)
-        default_end_date = default_start_date + timedelta(days=7)
+        # Forecast history ends on 2016-04-24. Set explicit calendar bounds:
+        # Streamlit's implicit date_input lower bound can otherwise prevent
+        # navigation to dates earlier than roughly 10 years before today.
+        earliest_forecast_date = date(2016, 4, 25)
+        latest_forecast_date = date(2036, 4, 19)  # 7,300-day lead limit from history end
+        default_start_date = min(
+            max(date.today() + timedelta(days=1), earliest_forecast_date),
+            latest_forecast_date,
+        )
+        default_end_date = min(default_start_date + timedelta(days=7), latest_forecast_date)
+
         date_col1, date_col2 = st.columns(2)
         start_date_f = date_col1.date_input(
             "Campaign Start Date",
             value=default_start_date,
+            min_value=earliest_forecast_date,
+            max_value=latest_forecast_date,
             key="feas_sd",
         )
+        end_max_date = min(start_date_f + timedelta(days=29), latest_forecast_date)
+        end_default_date = min(max(default_end_date, start_date_f), end_max_date)
+        # If the start date moves earlier, keep the stored end date inside the
+        # newly valid range before rendering the end-date widget.
+        stored_end_date = st.session_state.get("feas_ed")
+        if stored_end_date is not None and not (start_date_f <= stored_end_date <= end_max_date):
+            st.session_state["feas_ed"] = end_default_date
         end_date_f = date_col2.date_input(
             "Campaign End Date",
-            value=default_end_date,
+            value=end_default_date,
+            min_value=start_date_f,
+            max_value=end_max_date,
             key="feas_ed",
+        )
+        st.caption(
+            f"Forecastable date range: {earliest_forecast_date:%d %b %Y} to "
+            f"{latest_forecast_date:%d %b %Y}. Campaign duration: maximum 30 days."
         )
         budget_limit_f = st.number_input("Budget Limit ($)", min_value=0.0, value=10000.0, step=500.0, key="feas_bl")
         uplift_pct_f = st.slider("Assumed Uplift %", 0, 100, 20, key="feas_up")
